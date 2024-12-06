@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2 class="text-2xl font-semibold mb-4">Lista de Alunos</h2>
+    <a href="{% url 'add_student' %}" class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800 mb-4 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Adicionar Novo Aluno
+    </a>
+
+    <div class="space-y-6">
+        {% for student in students %}
+            <div class="bg-white p-4 border rounded-lg shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">{{ student.name }}</h3>
+                    <div class="flex space-x-2">
+                        <a href="{% url 'add_difficulty' student.id %}" class="inline-block bg-orange-500 text-white px-4 py-1 rounded hover:bg-orange-800 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="12"></line>
+                                <line x1="9" y1="15" x2="15" y2="15"></line>
+                            </svg>
+                            Adicionar Dificuldade
+                        </a>
+                        <a href="{% url 'generate_report' student.id %}" class="inline-block bg-yellow-500 text-white px-4 py-1 rounded hover:bg-yellow-800 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="12" y1="10" x2="12" y2="16"></line>
+                                <line x1="9" y1="13" x2="15" y2="13"></line>
+                            </svg>
+                            Gerar Relatório
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    {% if student.difficulties.all %}
+                        <ul class="space-y-2">
+                            {% for difficulty in student.difficulties.all %}
+                                <li class="flex items-center justify-between p-2 border rounded-lg bg-gray-50 hover:bg-gray-100">
+                                    <span class="text-sm">{{ difficulty.content.title }} - Nível de Dificuldade: {{ difficulty.get_level_display }}</span>
+                                    <a href="{% url 'edit_difficulty' difficulty.id %}" class="text-blue-600 hover:text-blue-800 flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                        </svg>
+                                        Editar
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-gray-500">Nenhuma dificuldade registrada.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

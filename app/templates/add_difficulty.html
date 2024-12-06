@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2 class="text-2xl font-semibold mb-4">Adicionar Dificuldade para {{ student.name }}</h2>
+    <form method="post" class="bg-white p-6 border rounded-lg shadow-sm">
+        {% csrf_token %}
+        <div class="space-y-4">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-800">Salvar</button>
+    </form>
+{% endblock %}

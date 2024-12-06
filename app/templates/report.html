@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Relatório do Aluno: {{ student.name }}</h1>
+  <h3>Informações:</h3>
+  <p><strong>Nome:</strong> {{ student.name }}</p>
+  <p><strong>Idade:</strong> {{ student.age }} anos</p>
+  <h3>Dificuldades Identificadas:</h3>
+  {% if difficulties %}
+    <ul>
+      {% for difficulty in difficulties %}
+        <li>
+          <strong>{{ difficulty.content.title }}:</strong>
+          Nível de dificuldade: {{ difficulty.get_level_display }}<br>
+          Feedback: {{ difficulty.feedback }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Não há dificuldades identificadas para este aluno.</p>
+  {% endif %}
+
+  <h3>Relatório Gerado pela IA:</h3>
+  <pre>{{ report }}</pre>
+
+  <a href="{% url 'list_students' %}">Voltar para a lista de alunos</a>
+{% endblock %}
