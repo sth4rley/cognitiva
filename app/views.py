@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import modelformset_factory
 from decouple import config
+from django.utils.safestring import mark_safe
 
 from .models import (
     Student,
@@ -118,8 +119,8 @@ def add_difficulty(request, student_id):
     return render(request, 'add_difficulty.html', {'form': form, 'student': student})
 
 
-def edit_difficulty(request, difficulty_id):
-    difficulty = get_object_or_404(Difficulty, id=difficulty_id)
+def edit_difficulty(request, id):
+    difficulty = get_object_or_404(Difficulty, id=id)
     if request.method == 'POST':
         form = DifficultyForm(request.POST, instance=difficulty)
         if form.is_valid():
@@ -134,40 +135,57 @@ def edit_difficulty(request, difficulty_id):
 def home_view(request):
     return redirect('list_students')
 
-
-# View para geração de relatórios com IA
 def generate_report_view(request, id):
     try:
+        # Obtém o aluno e suas dificuldades
         student = get_object_or_404(Student, id=id)
         difficulties = Difficulty.objects.filter(student=student)
 
-        prompt = f"""
-        Relatório personalizado de atenção para o aluno {student.name}:
-
-        1. **Informações sobre o aluno**:
-        - Nome do Aluno: {student.name}
-        - Idade: {student.age}
-
-        2. **Dificuldades Identificadas**:
-        - O aluno enfrenta dificuldades nas seguintes disciplinas:
-        """
+        # Lista para armazenar relatórios das dificuldades
+        ai_reports = []
 
         for difficulty in difficulties:
-            prompt += f"- **{difficulty.content.title}**: Nível de dificuldade {difficulty.get_level_display()} ({difficulty.feedback})\n"
+            # Construção do prompt
+            prompt = f"""
+            Baseado nas dificuldades do aluno {student.name}:
+            Nível de dificuldade: {difficulty.get_level_display()}
+            Conteúdo da dificuldade: {difficulty.content.title}\n
+            Sobre a dificuldade: {difficulty.feedback}
+            (Não é necessário reescrever os dados mencionados na resposta.)
+            Crie um relatório detalhado sobre o aluno {student.name} usando HTML. O relatório deve incluir fórmulas em MathML, se necessário.
+            Estruture o HTML como um componente <div> contendo:
+            1. Atividades Sugeridas:
+               - Sugira missões, desafios e atividades interativas personalizadas para superar as dificuldades.
 
-        prompt += """
-        3. **Atividades Sugeridas**:
-        Sugira missões, desafios e atividades interativas para o aluno superar as dificuldades.
-        """
+            2. Exemplos de exercício:
+               - exercícios básicos, baseados na dificuldade do aluno, com respostas passo a passo em MathML
 
-        response = model.generate_content(prompt)
-        ai_report = response.text
+            Certifique-se de retornar **apenas HTML válido** no componente <div>.
+            Não repita as informações passadas, gere apenas os itens 1 e 2.
+            """
 
+            # Chamada ao modelo de IA
+            response = model.generate_content(prompt).text
+
+            # Adiciona o relatório da dificuldade à lista
+            ai_reports.append(f"""
+                <div class="difficulty-report border-b pb-4 mb-4">
+                    <h3 class="text-lg font-bold">{difficulty.content.title}</h3>
+                    <p><strong>Feedback:</strong> {difficulty.feedback}</p>
+                    <p><strong>Nível de dificuldade:</strong> {difficulty.level}</p>
+                    <div class="ai-suggestions">
+                        {response}
+                    </div>
+                </div>
+            """)
+
+        # Renderiza o relatório no template
         return render(request, "report.html", {
             "student": student,
-            "report": ai_report,
+            "report": mark_safe("\n".join(ai_reports)),
             "difficulties": difficulties,
         })
 
     except Exception as e:
-        return HttpResponse(f"Erro: {str(e)}", status=500)
+        # Tratamento genérico de erros
+        return HttpResponse(f"Erro ao gerar o relatório: {str(e)}", status=500)
